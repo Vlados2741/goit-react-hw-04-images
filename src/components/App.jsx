@@ -1,21 +1,19 @@
-import React from "react";
+import {useState} from "react";
 import { Searchbar } from "./imageFinder/Searchbar";
 import { ImageGallery } from "./imageFinder/ImageGallery";
 import "./imageFinder/imageFinder-style.css"
-export class App extends React.Component {
-  state = {
-    inputValue: '',
-  };
-  onFormSubmit = inputValue => {
-    this.setState({inputValue })
+export const App = () =>  {
+  const [inputValue, setInputValue] = useState('')
+
+  const onFormSubmit = inputValue => {
+    setInputValue(inputValue)
+    console.log(inputValue)
   };
  
-  render() {
-    const { inputValue } = this.state;
     return(
       <div>
         <Searchbar
-          onSubmit={this.onFormSubmit}
+          onSubmit={onFormSubmit}
         />
 
         <ImageGallery
@@ -23,5 +21,4 @@ export class App extends React.Component {
         />
       </div>
     );
-  };
 };

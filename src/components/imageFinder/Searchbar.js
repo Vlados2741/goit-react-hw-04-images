@@ -1,52 +1,49 @@
-import React from "react"
+import {useState} from "react"
 import PropTypes from 'prop-types';
 
-export class Searchbar extends React.Component {
-    state = {
-        inputValue: '',
-    };
+export const Searchbar = (props) => {
+
+    const [inputValue, setInputValue] = useState('')
     
-    handleInput = e => {
-        this.setState({ inputValue: e.target.value.toLowerCase() });
+    const handleInput = e => {
+        setInputValue(e.target.value.toLowerCase());
     };
 
-    handleSubmit = e => {
+    const handleSubmit = e => {
         e.preventDefault();
-        if (this.state.inputValue.trim() === '') {
+        if (inputValue.trim() === '') {
             alert('Please, enter a keyword to search!');
             return;
         }
-        this.props.onSubmit(this.state.inputValue);
-        this.setState({ inputValue: '' });
+        props.onSubmit(inputValue);
+        setInputValue('');
     };
 
-    render () {
-        return (
-            <div className="form">
-                <form
-                    className="search-form"
-                    id="search-form"
-                    onSubmit={this.handleSubmit}
+    return (
+        <div className="form">
+            <form
+                className="search-form"
+                id="search-form"
+                onSubmit={handleSubmit}
+            >
+                <input
+                    type="text"
+                    name="searchQuery"
+                    autoComplete="off"
+                    value={inputValue}
+                    placeholder="Search images..."
+                    onChange={handleInput}
+                />
+                <button
+                    type="submit"
+                    className="search"
                 >
-                    <input
-                        type="text"
-                        name="searchQuery"
-                        autoComplete="off"
-                        value={this.state.inputValue}
-                        placeholder="Search images..."
-                        onChange={this.handleInput}
-                    />
-                    <button
-                        type="submit"
-                        className="search"
-                    >
-                        S
-                    </button>
-                    
-                </form>
-            </div>
-        );
-    };
+                    S
+                </button>
+                
+            </form>
+        </div>
+    );
 };
 
 Searchbar.propTypes = {
