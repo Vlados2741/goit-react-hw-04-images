@@ -1,106 +1,106 @@
-import { useState, useEffect} from "react";
-import axios from "axios";
+import { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
-import { Loader } from "./Loader";
-import { ImageGalleryItem } from "./ImageGalleryItem";
-import { Modal } from "./Modal";
-import { Button } from "./Button";
+import { Loader } from './Loader';
+import { ImageGalleryItem } from './ImageGalleryItem';
+import { Modal } from './Modal';
+import { Button } from './Button';
+import { api } from 'service/api';
 
+export const ImageGallery = ({ inputValue }) => {
+  const [images, setImages] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [urlLarge, setUrlLarge] = useState('');
+  const [page, setPage] = useState(1);
+  const prevPage = usePrevious(page);
+  const prevInputValue = usePrevious(inputValue);
 
-export const ImageGallery = (props) => {
-    const [images, setImages] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null)
-    const [showModal, setShowModal] = useState(false)
-    const [contentModal, setContentModal] = useState({urlLarge: ''})
-    const [page, setPage] = useState(1)
-    
+  useEffect(() => {
+    const fetchGallery = async (inputValue, page) => {
+      setLoading(true);
+      try {
+        const result = await api(inputValue, page);
+        const images = result.hits;
+        if (result.total === 0) {
+          alert('No images');
+        }
+        if (page === 1) {
+          setImages([...images]);
+        } else {
+          setImages(prevState => [...prevState, ...images]);
+        }
+      } catch (error) {
+        setError(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (page > prevPage) {
+      fetchGallery(inputValue, page);
+      return;
+    }
+
+    if (prevInputValue !== inputValue && page === prevPage) {
+      fetchGallery(inputValue, 1);
+      resetPage();
+      return;
+    }
+  }, [inputValue, page, prevPage, prevInputValue, error]);
+
+  const resetPage = () => {
+    setPage(1);
+  };
+
+  function usePrevious(value) {
+    const ref = useRef();
     useEffect(() => {
-        const KEY = '29230090-341e91ba352ddd311dc4a279b';
-        const value = props.inputValue;
-            setImages('');
-            setLoading(true);
-            setContentModal('');
-            setPage(1)
-            fetchImages(KEY, value, page);
-        if (value === value &&
-            page > page) {
-
-            setLoading(true);
-
-            this.fetchImages(KEY, value, page);
-        };
+      ref.current = value;
     });
-    
-    const fetchImages = async (KEY, value, page) => {
-     try {
-                const response = await axios.get(
-                    `https://pixabay.com/api/?key=${KEY}&q=${value}&page=${page}&image_type=photo&per_page=12`
-                );
+    return ref.current;
+  }
 
-                if (response.data.total === 0) {
-                    alert("No results")
-                    setPage(1)
-                };
-                return setImages([...images, ...response.data.hits])
-            }
-            catch (error) {
-                setError 
-            }
-            finally {
-                setLoading(false);
-            }
-    };
+  const openModal = contentModal => {
+    setShowModal(true);
+    setUrlLarge(contentModal);
+  };
 
-    const openModal = contentModal => {
-        setShowModal(true)
-        setContentModal(contentModal)
-    };
+  const closeModal = () => {
+    setShowModal(false);
+    setUrlLarge({ urlLarge: '' });
+  };
 
-    const closeModal = () => {
-        setShowModal(false)
-        setContentModal({urlLarge: ''})
-    };
+  const loadMore = () => {
+    setPage(page + 1);
+  };
 
-    const loadMore = () => {
-        setPage(page + 1)
-    };
-
-    const value = props.inputValue;
-    
-    return (
+  return (
+    <div>
+      {!inputValue && <h2>Please, enter your request</h2>}
+      {showModal && <Modal content={urlLarge} onClick={closeModal} />}
+      {images && (
         <div>
-            {value === "" && <h2>Please, enter your request</h2>}
-            {showModal &&
-                <Modal
-                    content={contentModal}
-                    onClick={closeModal} />
-            }
-            {images &&
-                <div>
-                    <ul className="gallery">
-                        {images.map(({id, webformatURL, largeImageURL, tags}) =>
-                            <ImageGalleryItem
-                                key={id}
-                                url={webformatURL}
-                                largeImageURL={largeImageURL}
-                                title={tags}
-                                onClick={openModal}
-                            />
-                            )};
-                    </ul>
-                </div>
-            }
-            {loading && <Loader />}
-            {images.length !== 0 && (
-                <Button
-                    onClick={loadMore}
-                />
-            )};
+          <ul className="gallery">
+            {images.map(({ id, webformatURL, largeImageURL, tags }) => (
+              <ImageGalleryItem
+                key={id}
+                url={webformatURL}
+                largeImageURL={largeImageURL}
+                title={tags}
+                onClick={openModal}
+              />
+            ))}
+            ;
+          </ul>
         </div>
-    );
+      )}
+      {loading && <Loader />}
+      {images.length !== 0 && <Button onClick={loadMore} />};
+    </div>
+  );
 };
 
 ImageGallery.propTypes = {
-    inputValue: PropTypes.string,
+  inputValue: PropTypes.string,
 };
